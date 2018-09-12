@@ -1,0 +1,19 @@
+{
+  "name": "06-tcp-server",
+  "version": "1.0.0",
+  "description": "Create chatroom application",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexlhanson/06-tcp-server.git"
+  },
+  "author": "Alex Hanson <alexlhanson@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alexlhanson/06-tcp-server/issues"
+  },
+  "homepage": "https://github.com/alexlhanson/06-tcp-server#readme"
+}
