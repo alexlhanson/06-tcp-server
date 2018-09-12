@@ -47,16 +47,31 @@ server.on('connection', (socket) => {
 //logic for emitting a message
 let messageDispatch = (userName, buffer) => {
   let message = parseOut(buffer);
-  events.emit();
+  events.emit(message.command, userName, message.textBody);//TODO
 };
 
 //message parser
 let parseOut = (buffer) => {
-  messageBody = buffer.toString();
+  let text = buffer.toString().trim();
 
-
-}
+  if(text.startsWith('@')){
+    let [command, textBody] = text.split(/\s+(.*)/);
+    return {command, textBody};
+  } else {
+    let command = '@all';
+    let textBody = text;
+    return {command, textBody};
+  }
+};
 
 /********************************************************************************
 *         user features                                                         *
 ********************************************************************************/
+
+//send message 
+
+//user quit
+
+//nickname change
+
+//direct message
