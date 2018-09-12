@@ -12,10 +12,6 @@ const port = process.env.port || 3000;
 const server = net.createServer();
 const events = new ee();
 
-//start up server
-server.listen(port, () => {
-  console.log(`server up and running on port: ${port}`);
-});
 
 //user pool and constructor
 
@@ -26,34 +22,33 @@ let User = function(socket){
   this.id = id;
   this.nickname = `User : <${id}>`;
   this.socket = socket;
-
+  
 };
 
 //setup listener
 
 server.on('connection', (socket) => {
-  console.log('opened socket');
-
+  
   //create new user on connection socket and add to user pool
   let user = new User(socket);
-  userPool[user.id];
-
+  userPool[user.id] = user;
+  
   //create listener for incoming data
   socket.on('data', (buffer) => {
-    messageDispatch(user.nickname, buffer);
+    messageDispatch(user, buffer);
   });
 });
 
 //logic for emitting a message
 let messageDispatch = (userName, buffer) => {
   let message = parseOut(buffer);
-  events.emit(message.command, userName, message.textBody);//TODO
+  events.emit(message.command, userName, message.textBody);
 };
 
 //message parser
 let parseOut = (buffer) => {
   let text = buffer.toString().trim();
-
+  
   if(text.startsWith('@')){
     let [command, textBody] = text.split(/\s+(.*)/);
     return {command, textBody};
@@ -65,13 +60,34 @@ let parseOut = (buffer) => {
 };
 
 /********************************************************************************
-*         user features                                                         *
-********************************************************************************/
+ *         user features                                                         *
+ ********************************************************************************/
 
-//send message 
+//send message to all people
+events.on('@all',(sender, message) => {
+  for (let userID in userPool){
+    let user = userPool[userID];
+    user.socket.write(`<${sender.nickname}>: ${message}\n`);
+  }
+});
 
 //user quit
 
+//get all users list
+
 //nickname change
+events.on('@nickname', (sender, newName) =>{
+  sender.nickname = newName;
+  sender.socket.write(`Your nickname has been changed to ${newName}\n`);
+});
 
 //direct message
+
+/********************************************************************************
+*         Start up server                                                       *
+********************************************************************************/
+
+//start up server
+server.listen(port, () => {
+  console.log(`server up and running on port: ${port}`);
+});
