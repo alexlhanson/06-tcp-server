@@ -102,7 +102,7 @@ events.on('@nickname', (sender, newName) => {
 
 // direct message
 events.on('@dm', (sender, payload) => {
-  let [sendee, message] = payload.split(/[^\s]+/);
+  let [sendee, message] = payload.split(/\s+(.*)/);
   let nicknameInPool = false;
 
   for (let userID in userPool) {
