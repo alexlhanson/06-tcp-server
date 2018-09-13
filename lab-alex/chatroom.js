@@ -17,25 +17,33 @@ const events = new ee();
 
 const userPool = {};
 
-let User = function(socket){
+let User = function (socket) {
   let id = uuid();
   this.id = id;
   this.nickname = `User : <${id}>`;
   this.socket = socket;
-  
+
 };
 
 //setup listener
 
 server.on('connection', (socket) => {
-  
+
   //create new user on connection socket and add to user pool
   let user = new User(socket);
   userPool[user.id] = user;
-  
+
   //create listener for incoming data
   socket.on('data', (buffer) => {
     messageDispatch(user, buffer);
+  });
+
+  socket.on('close', (sender, socket) => {
+    delete userPool[user.id];
+  });
+
+  socket.on('error', (err) =>{
+    console.error(err);
   });
 });
 
@@ -48,14 +56,14 @@ let messageDispatch = (userName, buffer) => {
 //message parser
 let parseOut = (buffer) => {
   let text = buffer.toString().trim();
-  
-  if(text.startsWith('@')){
+
+  if (text.startsWith('@')) {
     let [command, textBody] = text.split(/\s+(.*)/);
-    return {command, textBody};
+    return { command, textBody };
   } else {
     let command = '@all';
     let textBody = text;
-    return {command, textBody};
+    return { command, textBody };
   }
 };
 
@@ -64,24 +72,52 @@ let parseOut = (buffer) => {
  ********************************************************************************/
 
 //send message to all people
-events.on('@all',(sender, message) => {
-  for (let userID in userPool){
+events.on('@all', (sender, message) => {
+  for (let userID in userPool) {
     let user = userPool[userID];
     user.socket.write(`<${sender.nickname}>: ${message}\n`);
   }
 });
 
 //user quit
+events.on('@quit', (sender) => {
+  delete userPool[sender.id];
+  sender.socket.end();
+  
+});
 
 //get all users list
+events.on('@list', (sender) => {
+  for (let userID in userPool) {
+    let user = userPool[userID];
+    sender.socket.write(`<${user.nickname}>\n`);
+  }
+});
 
 //nickname change
-events.on('@nickname', (sender, newName) =>{
+events.on('@nickname', (sender, newName) => {
   sender.nickname = newName;
   sender.socket.write(`Your nickname has been changed to ${newName}\n`);
 });
 
-//direct message
+// direct message
+events.on('@dm', (sender, payload) => {
+  let [sendee, message] = payload.split(/[^\s]+/);
+  let nicknameInPool = false;
+
+  for (let userID in userPool) {
+    console.log(message);
+    console.log(sendee);
+    console.log(payload);
+    if (userPool[userID].nickname === sendee) {
+      userPool[userID].socket.write(`<${sender.nickname}>: ${message}\n`);
+      nicknameInPool = true;
+    }
+  }
+  if (!nicknameInPool) {
+    sender.socket.write(`Error: ${sendee} is not currently in use\n`);
+  }
+});
 
 /********************************************************************************
 *         Start up server                                                       *
