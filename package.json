@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/alexlhanson/06-tcp-server/issues"
   },
-  "homepage": "https://github.com/alexlhanson/06-tcp-server#readme"
+  "homepage": "https://github.com/alexlhanson/06-tcp-server#readme",
+  "dependencies": {
+    "uuid": "^3.3.2"
+  }
 }
